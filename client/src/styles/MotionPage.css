@@ -1,0 +1,36 @@
+.motion-page-container {
+    padding: 40px;
+    background-color: #f0fff4;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.motion-title {
+    color: #05613e;
+    font-size: 28px;
+    margin-bottom: 25px;
+}
+
+.motion-table {
+    width: 100%;
+    border-collapse: collapse;
+    background-color: #ffffff;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.motion-table thead {
+    background-color: #05613e;
+    color: white;
+}
+
+.motion-table th,
+.motion-table td {
+    padding: 14px 18px;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+}
+
+.motion-table tbody tr:hover {
+    background-color: #def7e4;
+}

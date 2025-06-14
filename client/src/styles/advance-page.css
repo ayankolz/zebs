@@ -1,0 +1,48 @@
+.advance-container {
+    padding: 3rem;
+    background: linear-gradient(135deg, #e6f5ec, #f9fff6);
+    border-radius: 10px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    font-family: 'Segoe UI', sans-serif;
+}
+
+.advance-title {
+    font-size: 2rem;
+    color: #05613e;
+    margin-bottom: 2rem;
+    text-align: center;
+}
+
+.button-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.5rem;
+    width: 100%;
+    max-width: 800px;
+}
+
+.controller-button {
+    padding: 1rem 2rem;
+    border: 2px solid #05613e;
+    background-color: #05613e;
+    color: white;
+    font-size: 1.1rem;
+    font-weight: 600;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.25s ease-in-out;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.controller-button:hover {
+    background-color: #03492e;
+    transform: translateY(-3px);
+}
+
+.controller-button.active {
+    background-color: #05613e;
+    color: white;
+    border-color: #03492e;
+}

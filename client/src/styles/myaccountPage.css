@@ -1,0 +1,82 @@
+.container2 {
+    display: flex;
+    justify-content: center;
+    align-items: center;;
+    background-color: #05613e;
+    border-radius: 10px;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.account-page {
+    background-color: white;
+    border-radius: 12px;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+    padding-left: 40px;
+    padding-right: 40px;
+    width: 400px;
+    text-align: center;
+}
+
+.profile img {
+    border: 4px solid #05613e;
+}
+
+.welcome {
+    color: #05613e;
+    font-size: 24px;
+}
+
+.firstname,
+.lastname,
+.email1,
+.usergrp {
+    text-align: left;
+}
+
+label.first,
+label.email {
+    color: #555;
+    font-weight: bold;
+    display: inline-block;
+    margin-bottom: 5px;
+}
+
+.bigger-text {
+    display: block;
+    font-size: 18px;
+    color: #333;
+    margin-top: 2px;
+}
+
+.password {
+    display: inline-block;
+    color: white;
+    text-decoration: none;
+    font-size: 16px;
+    margin-top: 15px;
+    border: none;
+    border-radius: 8px;
+    margin-right: 120px;
+    padding: 10px 20px;
+    background-color: #05613e;
+}
+
+.password:hover {
+    text-decoration: #03492e;
+}
+
+.logout1 {
+    margin-top: 15px;
+    padding: 10px 20px;
+    background-color: #05613e;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.logout1:hover {
+    background-color: #03492e;
+}

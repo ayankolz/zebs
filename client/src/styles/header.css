@@ -1,0 +1,56 @@
+.logo {
+  height: auto; 
+  width: 4vw; 
+  cursor: pointer;
+}
+.link {
+  text-decoration: none; /* Remove underline */
+  color: inherit; /* Inherit text color */
+  cursor: pointer; /* Show pointer cursor on hover */
+}
+.expense {
+  font-size: 9px; /* You can adjust the font size as needed */
+  letter-spacing: 4.2px;
+  color: #05613e;
+  margin-left: 5px;
+}
+.system {
+  font-size: 12px; /* You can adjust the font size as needed */
+  color:#05613e;
+  margin-left: 5px;
+  letter-spacing: 4px;
+}
+
+
+.header-table {
+  background-color: rgb(255, 255, 255);
+  width: 100%; /* Make the table span the full width */
+  border-collapse: collapse; /* Collapse the borders of the table cells */
+}
+
+.header-row th:nth-child(1) {
+  text-align: left;
+  width: 3%;
+}
+
+.header-row th:nth-child(2) {
+  text-align: left;
+}
+
+.header-row th:nth-child(3) {
+  text-align: right;
+  padding-right: 20px;
+}
+
+.logout   {
+  border: 2px solid #05613e;
+  border-radius: 1vh; /* Using viewport height for border radius */
+  background-color: #05613e;
+  padding: 1vh 2vw; /* Using viewport units for padding */
+  cursor: pointer;
+  color: white;
+}
+
+.logout:hover {
+background-color: #03492e;
+}
