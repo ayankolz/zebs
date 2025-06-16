@@ -30,3 +30,6 @@ const PORT = process.env.PORT || 3005;
 app.listen(PORT, () => {
   console.log(`${PORT} Server is running`);
 });
+app.get('/', (req, res) => {
+  res.send('Backend server is running successfully!');
+});
