@@ -24,6 +24,9 @@ app.use('/auth', irrigationRouter);
 app.use('/auth', sensorsRouter);
 app.use('/auth', motionRouter)
 
-app.listen(3005, () => {
-    console.log("3005 Server is running");
+// Use PORT from environment, fallback to 3005 locally
+const PORT = process.env.PORT || 3005;
+
+app.listen(PORT, () => {
+  console.log(`${PORT} Server is running`);
 });
