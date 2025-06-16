@@ -1,37 +1,49 @@
 import express from 'express';
-import { con } from '../utils/db.js';
+import { db } from './db.js';
 import nodemailer from 'nodemailer';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-const router = express.Router();
 import dotenv from 'dotenv';
-dotenv.config();
 import { authenticateToken } from '../middleware/authenticateToken.js';
 
+dotenv.config();
+const router = express.Router();
 
-// POST /auth/register
+// Nodemailer config
+const transporter = nodemailer.createTransport({
+    service: 'gmail',
+    port: 465,
+    secure: true,
+    auth: {
+        user: process.env.MY_EMAIL,
+        pass: process.env.MY_PASSWORD,
+    }
+});
+
+// REGISTER
 router.post('/register', async (req, res) => {
     const { firstname, lastname, email, password } = req.body;
-
     if (!firstname || !lastname || !email || !password) {
         return res.json({ success: false, message: 'All fields are required' });
     }
 
     try {
-        // Check if user exists
-        const [existing] = await con.promise().query('SELECT * FROM users WHERE email = ?', [email]);
-        if (existing.length > 0) {
+        const usersCollection = db.collection('users');
+        const existing = await usersCollection.findOne({ email });
+
+        if (existing) {
             return res.json({ success: false, message: 'Email already registered' });
         }
 
-        // Hash password
         const hashedPassword = await bcrypt.hash(password, 10);
 
-        // Insert user
-        await con.promise().query(
-            'INSERT INTO users (firstname, lastname, email, password, created_date) VALUES (?, ?, ?, ?, NOW())',
-            [firstname, lastname, email, hashedPassword]
-        );
+        await usersCollection.insertOne({
+            firstname,
+            lastname,
+            email,
+            password: hashedPassword,
+            created_date: new Date()
+        });
 
         return res.json({ success: true, message: 'User registered successfully' });
     } catch (error) {
@@ -40,264 +52,145 @@ router.post('/register', async (req, res) => {
     }
 });
 
+// LOGIN
+router.post("/login", async (req, res) => {
+    const { email, password } = req.body;
+    try {
+        const user = await db.collection('users').findOne({ email });
 
-
-router.post("/Login", (req, res) => {
-    const email = req.body.email;
-    const password = req.body.password;
-
-    // Retrieve the hashed password from the database based on the email
-    const sqlSelect = 'SELECT email, password FROM users WHERE email = ?';
-
-    con.query(sqlSelect, [email], (error, results) => {
-        if (error) {
-            console.error('Error retrieving user from database:', error);
-            return res.status(500).json({ loginStatus: false, error: 'Internal server error' });
-        }
-
-        if (results.length === 0) {
-            // User not found
+        if (!user) {
             return res.json({ loginStatus: false, error: "Wrong email or password" });
         }
 
-        const user = results[0];
-        const hashedPassword = user.password;
+        const isMatch = await bcrypt.compare(password, user.password);
+        if (!isMatch) {
+            return res.json({ loginStatus: false, error: "Wrong email or password" });
+        }
 
-        // Compare the entered password with the hashed password from the database
-        bcrypt.compare(password, hashedPassword, async (err, isMatch) => {
-            if (err) {
-                console.error('Error comparing passwords:', err);
-                return res.status(500).json({ loginStatus: false, error: 'Internal server error' });
-            }
-
-            if (!isMatch) {
-                // Passwords don't match
-                return res.json({ loginStatus: false, error: "Wrong email or password" });
-            }
-
-                // Return successful login response with access token and refresh token
-                const responseData = {
-                    loginStatus: true,
-                };
-                res.json(responseData); // Send the response only once
-            });
-        });
-    });
-
-
-router.post("/logout", async (req, res) => {
-    try {
-        // Perform any server-side cleanup here if needed (optional)
-
-        return res.status(200).json({ success: true, message: "Logout successful" });
-    } catch (error) {
-        console.error('Error during logout:', error);
-        return res.status(500).json({ success: false, message: "Failed to logout. Please try again later." });
+        return res.json({ loginStatus: true });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ loginStatus: false, error: 'Internal server error' });
     }
 });
 
-
-const transporter = nodemailer.createTransport({
-    service: 'gmail',
-    port: 465,
-    secure: true, // use SSL
-    auth: {
-        user: process.env.MY_EMAIL,
-        pass: process.env.MY_PASSWORD,
-    }
+// LOGOUT (dummy since token system not implemented)
+router.post("/logout", (req, res) => {
+    res.status(200).json({ success: true, message: "Logout successful" });
 });
 
-const generateResetToken = () => {
-    return Math.random().toString(36).substr(2); // Example token format: "n1fw8d"
-};
+// Password Reset Token Generator
+const generateResetToken = () => Math.random().toString(36).substr(2);
 
-const insertResetToken = (email, resetToken, expiryTime) => {
-    return new Promise((resolve, reject) => {
-        const query = "INSERT INTO tokens (email, reset_token, expiry_time) VALUES (?, ?, ?)";
-        const values = [email, resetToken, expiryTime];
-        con.query(query, values, (error, results) => {
-            if (error) {
-                console.error('Error inserting reset token into database:', error);
-                reject(error);
-            } else {
-                resolve(results);
-            }
-        });
+// Insert Reset Token into DB
+const insertResetToken = async (email, resetToken, expiryTime) => {
+    await db.collection('tokens').insertOne({
+        email,
+        reset_token: resetToken,
+        expiry_time: expiryTime
     });
 };
 
+// SEND RESET TOKEN
 router.post('/send-reset-token', async (req, res) => {
+    const { email } = req.body;
     try {
-        const { email } = req.body;
+        const user = await db.collection('users').findOne({ email });
+        if (!user) {
+            return res.status(404).json({ success: false, error: 'User not found' });
+        }
 
-        // Query the database to get the user's email
-        const sql = "SELECT email FROM users WHERE email = ?";
-        con.query(sql, [email], async (error, results) => {
-            if (error) {
-                console.error('Error querying database:', error);
-                return res.status(500).json({ success: false, error: 'Database query error' });
-            }
+        const resetToken = generateResetToken();
+        const expiryTime = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
 
-            // If no user with the given email is found in the database
-            if (results.length === 0) {
-                return res.status(404).json({ success: false, error: 'User not found' });
-            }
+        await insertResetToken(email, resetToken, expiryTime);
 
-            // User email found, proceed to send reset link email
-            const resetToken = generateResetToken(); // Generate reset token
-            const expiryTime = new Date(); // Set expiry time for the reset token (e.g., current time + 1 hour)
-            expiryTime.setHours(expiryTime.getHours() + 1); // Example: Expiry time is 1 hour from now
-            await insertResetToken(email, resetToken, expiryTime); // Insert reset token into the database
+        const mailOptions = {
+            from: process.env.MY_EMAIL,
+            to: email,
+            subject: 'Password Reset Link',
+            text: `Click the following link to reset your password: http://localhost:3000/reset-password/${resetToken}. Use within an hour.`
+        };
 
-            // Email content
-            const mailOptions = {
-                from: process.env.MY_EMAIL,
-                to: email,
-                subject: 'Password Reset Link',
-                text: `Click the following link to reset your password: http://localhost:3000/reset-password/${resetToken}. use within an hour`
-            };
-
-            // Send the reset link email
-            transporter.sendMail(mailOptions, (error, info) => {
-                if (error) {
-                    console.error('Error sending email:', error);
-                    return res.status(500).json({ success: false, error: 'Failed to send reset link email' });
-                } else {
-                    return res.json({ success: true, message: 'Reset link sent to your email' });
-                }
-            });
-        });
+        await transporter.sendMail(mailOptions);
+        return res.json({ success: true, message: 'Reset link sent to your email' });
     } catch (error) {
-        console.error('Error:', error);
-        return res.status(500).json({ success: false, error: 'Internal server error' });
+        console.error(error);
+        res.status(500).json({ success: false, error: 'Internal server error' });
     }
 });
 
+// VERIFY RESET TOKEN
 const verifyResetToken = async (resetToken) => {
-    return new Promise((resolve, reject) => {
-        // Query the database to check if the reset token exists and if it's valid
-        const sql = "SELECT * FROM tokens WHERE reset_token = ? AND expiry_time > NOW()";
-        con.query(sql, [resetToken], (error, results) => {
-            if (error) {
-                console.error('Error verifying reset token:', error);
-                return reject(error); // Reject the promise if there's an error
-            }
-            // If a matching token is found and it's not expired, resolve with true
-            if (results.length > 0) {
-                return resolve(true);
-            } else {
-                // If no matching token is found or it's expired, resolve with false
-                return resolve(false);
-            }
-        });
+    const tokenDoc = await db.collection('tokens').findOne({
+        reset_token: resetToken,
+        expiry_time: { $gt: new Date() }
     });
+    return tokenDoc ? tokenDoc : null;
 };
 
+// RESET PASSWORD
 router.post('/reset-password/:token', async (req, res) => {
+    const { token } = req.params;
+    const { newPassword } = req.body;
+
     try {
-        const { token } = req.params;
-        const { newPassword } = req.body;
-        
-        // Verify the reset token against the stored tokens in the database
-        const isValidToken = await verifyResetToken(token);
-        
-        if (isValidToken) {
-            // Hash the new password before storing it in the database
-            bcrypt.hash(newPassword, 10, async (err, hashedPassword) => {
-                if (err) {
-                    console.error('Error hashing password:', err);
-                    return res.status(500).json({ success: false, error: 'Internal server error' });
-                }
-                
-            // Update the password associated with the email corresponding to the reset token in the database
-            const sql = `
-                UPDATE users 
-                SET password = ? 
-                WHERE email = (SELECT email FROM (SELECT email FROM tokens WHERE reset_token = ?) AS temp)
-            `;
-            const values = [hashedPassword, token];
-
-            con.query(sql, values, (error, results) => {
-                if (error) {
-                    console.error('Error updating password in database:', error);
-                    return res.status(500).json({ success: false, error: 'Internal server error' });
-                }
-                
-                // Check if any rows were affected by the update query
-                if (results.affectedRows === 0) {
-                    // No rows were updated, indicating that no user was found with the given reset token
-                    return res.status(404).json({ success: false, error: 'User not found' });
-                }
-
-                // Password updated successfully
-                return res.status(200).json({ success: true, message: 'Password updated successfully' });
-            });
-
-            });
-        } else {
-            // If the token is invalid or expired, send a JSON response with error message
-            res.status(400).json({ success: false, error: 'Invalid or expired token' });
+        const tokenDoc = await verifyResetToken(token);
+        if (!tokenDoc) {
+            return res.status(400).json({ success: false, error: 'Invalid or expired token' });
         }
+
+        const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+        await db.collection('users').updateOne(
+            { email: tokenDoc.email },
+            { $set: { password: hashedPassword } }
+        );
+
+        return res.json({ success: true, message: 'Password updated successfully' });
     } catch (error) {
-        console.error('Error:', error);
+        console.error(error);
         res.status(500).json({ success: false, error: 'Internal server error' });
     }
 });
 
+// CHANGE PASSWORD
 router.post('/change-password/:email', authenticateToken, async (req, res) => {
+    const { email } = req.params;
+    const { newPassword } = req.body;
+
     try {
-        const { email } = req.params;
-        const { newPassword } = req.body;
-        // Hash the new password before storing it in the database
-        bcrypt.hash(newPassword, 10, async (err, hashedPassword) => {
-            if (err) {
-                console.error('Error hashing password:', err);
-                return res.status(500).json({ success: false, error: 'Internal server error' });
-            }
+        const hashedPassword = await bcrypt.hash(newPassword, 10);
 
-            // Update the password associated with the email in the database
-            const sql = `
-                UPDATE usersform
-                SET password = ? 
-                WHERE email = ? 
-            `;
-            const values = [hashedPassword, email];
+        const result = await db.collection('users').updateOne(
+            { email },
+            { $set: { password: hashedPassword } }
+        );
 
-            con.query(sql, values, (error, results) => {
-                if (error) {
-                    console.error('Error updating password in database:', error);
-                    return res.status(500).json({ success: false, error: 'Internal server error' });
-                }
+        if (result.matchedCount === 0) {
+            return res.status(404).json({ success: false, error: 'User not found' });
+        }
 
-                // Check if any rows were affected by the update query
-                if (results.affectedRows === 0) {
-                    // No rows were updated, indicating that no user was found with the given email
-                    return res.status(404).json({ success: false, error: 'User not found' });
-                }
-
-                // Password updated successfully
-                return res.status(200).json({ success: true, message: 'Password updated successfully' });
-            });
-        });
+        return res.json({ success: true, message: 'Password updated successfully' });
     } catch (error) {
-        console.error('Error:', error);
+        console.error(error);
         res.status(500).json({ success: false, error: 'Internal server error' });
     }
 });
 
-router.get('/account/:email', (req, res) => {
-    const userEmail = req.params.email;
-
-    con.query('SELECT * FROM users', (err, result) => {
-        if (err) {
-            console.error('Database error:', err);
-            return res.status(500).json({ error: 'Internal server error' });
+// GET ACCOUNT DETAILS
+router.get('/account/:email', async (req, res) => {
+    const { email } = req.params;
+    try {
+        const user = await db.collection('users').findOne({ email }, { projection: { password: 0 } });
+        if (!user) {
+            return res.status(404).json({ error: 'User not found' });
         }
-
-        const filteredResult = result.filter(user => user.email === userEmail);
-        res.json(filteredResult);
-    });
+        res.json(user);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'Internal server error' });
+    }
 });
-
 
 export { router as userRouter };

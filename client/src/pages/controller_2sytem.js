@@ -8,7 +8,7 @@ const System2 = () => {
     useEffect(() => {
         const fetchSystemData = async () => {
             try {
-                const response = await fetch(`http://localhost:3005/auth/system2`);
+                const response = await fetch(`https://server-as46.onrender.com/auth/system2`);
                 if (!response.ok) {
                     throw new Error(`Error ${response.status}`);
                 }

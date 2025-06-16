@@ -27,7 +27,7 @@ function ResetPasswordPage() {
     }
 
     try {
-      await axios.post(`http://localhost:3005/auth/reset-password/${token}`, { newPassword });
+      await axios.post(`https://server-as46.onrender.com/auth/reset-password/${token}`, { newPassword });
       alert('Password reset successful! Please log in with your new password.');
       window.location.href = '/login';
     } catch (error) {

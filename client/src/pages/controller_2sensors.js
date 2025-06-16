@@ -8,7 +8,7 @@ const Sensors2 = () => {
     useEffect(() => {
         const fetchSensorData = async () => {
             try {
-                const response = await fetch(`http://localhost:3005/auth/sensors2`);
+                const response = await fetch(`https://server-as46.onrender.com/auth/sensors2`);
                 if (!response.ok) throw new Error(`Error ${response.status}`);
                 const json = await response.json();
                 setData(json);

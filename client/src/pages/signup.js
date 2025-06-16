@@ -16,7 +16,7 @@ const Signup = () => {
     const handleSubmit = (e) => {
         e.preventDefault();
 
-        axios.post('http://localhost:3005/auth/register', values)
+        axios.post('https://server-as46.onrender.com/auth/register', values)
             .then(res => {
                 if (res.data.success) {
                     navigate('/login'); // Redirect to login on success

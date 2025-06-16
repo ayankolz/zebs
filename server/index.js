@@ -11,7 +11,7 @@ import { motionRouter } from "./routes/motionroute.js";
 const app = express();
 
 app.use(cors({
-    origin: ["http://localhost:3000"],
+    origin: ["https://client-m28c.onrender.com"],
     methods: ['GET', 'POST', 'PUT'],
     credentials: true
   }));

@@ -1,31 +1,25 @@
 import express from 'express';
-import { con } from '../utils/db.js';
+import { db } from './db.js';
+
 const router = express.Router();
 
-router.get('/sensors1', (req, res) => {
-    con.query("SELECT * FROM sensors WHERE microcontroller = 1 ORDER BY timestamp DESC", (err, result) => {
-        if (err) return res.status(500).send(err);
-        res.json(result);
-    });
-});
-router.get('/sensors2', (req, res) => {
-    con.query("SELECT * FROM sensors WHERE microcontroller = 2 ORDER BY timestamp DESC", (err, result) => {
-        if (err) return res.status(500).send(err);
-        res.json(result);
-    });
-});
-router.get('/sensors3', (req, res) => {
-    con.query("SELECT * FROM sensors WHERE microcontroller = 3 ORDER BY timestamp DESC", (err, result) => {
-        if (err) return res.status(500).send(err);
-        res.json(result);
-    });
-})
-router.get('/sensors4', (req, res) => {
-    con.query("SELECT * FROM sensors WHERE microcontroller = 4 ORDER BY timestamp DESC", (err, result) => {
-        if (err) return res.status(500).send(err);
-        res.json(result);
-    });
-})
+async function getSensorsData(microcontroller, res) {
+    try {
+        const sensorsCollection = db.collection('sensors');
+        const data = await sensorsCollection
+            .find({ microcontroller })
+            .sort({ timestamp: -1 })
+            .toArray();
 
+        res.json(data);
+    } catch (err) {
+        res.status(500).send(err.message);
+    }
+}
 
-export { router as sensorsRouter }
+router.get('/sensors1', (req, res) => getSensorsData(1, res));
+router.get('/sensors2', (req, res) => getSensorsData(2, res));
+router.get('/sensors3', (req, res) => getSensorsData(3, res));
+router.get('/sensors4', (req, res) => getSensorsData(4, res));
+
+export { router as sensorsRouter };

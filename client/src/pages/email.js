@@ -13,7 +13,7 @@ function ResetPassword() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await axios.post('http://localhost:3005/auth/send-reset-token', { email });
+      const response = await axios.post('https://server-as46.onrender.com/auth/send-reset-token', { email });
       if (response.data.success) {
         setMessage(response.data.message);
         setTimeout(() => {

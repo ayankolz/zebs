@@ -9,7 +9,7 @@ const Header = () => {
   const email = localStorage.getItem('userEmail');
 
 const handleLogout = () => {
-  axios.post('http://localhost:3005/auth/logout')
+  axios.post('https://server-as46.onrender.com/auth/logout')
     .then(result => {
       if (result.data.success) {
         localStorage.removeItem('userEmail');

@@ -7,7 +7,7 @@ const Motion = () => {
     useEffect(() => {
         const fetchMotionData = async () => {
             try {
-                const response = await fetch(`http://localhost:3005/auth/motion4`);
+                const response = await fetch(`https://server-as46.onrender.com/auth/motion4`);
                 if (!response.ok) throw new Error(`Error ${response.status}`);
                 const json = await response.json();
                 setData(json);
@@ -24,7 +24,7 @@ const Motion = () => {
     useEffect(() => {
     const fetchMotionData = async () => {
         try {
-            const response = await fetch(`http://localhost:3005/auth/motion3`);
+            const response = await fetch(`https://server-as46.onrender.com/auth/motion3`);
             if (!response.ok) throw new Error(`Error ${response.status}`);
             const json = await response.json();
             setData(json);
@@ -41,7 +41,7 @@ const Motion = () => {
     useEffect(() => {
     const fetchMotionData = async () => {
         try {
-            const response = await fetch(`http://localhost:3005/auth/motion2`);
+            const response = await fetch(`https://server-as46.onrender.com/auth/motion2`);
             if (!response.ok) throw new Error(`Error ${response.status}`);
             const json = await response.json();
             setData(json);
@@ -58,7 +58,7 @@ const Motion = () => {
     useEffect(() => {
     const fetchMotionData = async () => {
         try {
-            const response = await fetch(`http://localhost:3005/auth/motion1`);
+            const response = await fetch(`https://server-as46.onrender.com/auth/motion1`);
             if (!response.ok) throw new Error(`Error ${response.status}`);
             const json = await response.json();
             setData(json);

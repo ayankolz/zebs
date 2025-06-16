@@ -1,30 +1,25 @@
 import express from 'express';
-import { con } from '../utils/db.js';
+import { db } from './db.js';
 
 const router = express.Router();
 
-router.get('/irrigation1',  (req, res) => {
-    con.query("SELECT * FROM irrigation WHERE microcontroller = 1 ORDER BY timestamp DESC", (err, result) => {
-        if (err) return res.status(500).send(err);
-        res.json(result);
-    });
-});
-router.get('/irrigation2',  (req, res) => {
-    con.query("SELECT * FROM irrigation WHERE microcontroller = 2 ORDER BY timestamp DESC", (err, result) => {
-        if (err) return res.status(500).send(err);
-        res.json(result);
-    });
-});
-router.get('/irrigation3',  (req, res) => {
-    con.query("SELECT * FROM irrigation WHERE microcontroller = 3 ORDER BY timestamp DESC", (err, result) => {
-        if (err) return res.status(500).send(err);
-        res.json(result);
-    });
-});
-router.get('/irrigation4',  (req, res) => {
-    con.query("SELECT * FROM irrigation WHERE microcontroller = 4 ORDER BY timestamp DESC", (err, result) => {
-        if (err) return res.status(500).send(err);
-        res.json(result);
-    });
-});
+async function getIrrigationData(microcontroller, res) {
+    try {
+        const irrigationCollection = db.collection('irrigation');
+        const data = await irrigationCollection
+            .find({ microcontroller })
+            .sort({ timestamp: -1 })
+            .toArray();
+
+        res.json(data);
+    } catch (err) {
+        res.status(500).send(err.message);
+    }
+}
+
+router.get('/irrigation1', (req, res) => getIrrigationData(1, res));
+router.get('/irrigation2', (req, res) => getIrrigationData(2, res));
+router.get('/irrigation3', (req, res) => getIrrigationData(3, res));
+router.get('/irrigation4', (req, res) => getIrrigationData(4, res));
+
 export { router as irrigationRouter };

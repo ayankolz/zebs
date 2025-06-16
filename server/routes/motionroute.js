@@ -1,30 +1,25 @@
 import express from 'express';
-import { con } from '../utils/db.js';
+import { db } from './db.js';
 
 const router = express.Router();
 
-router.get('motion1',  (req, res) => {
-    con.query("SELECT * FROM motion WHERE microcontroller = 1 ORDER BY timestamp DESC", (err, result) => {
-        if (err) return res.status(500).send(err);
-        res.json(result);
-    });
-});
-router.get('motion2',  (req, res) => {
-    con.query("SELECT * FROM motion WHERE microcontroller = 2 ORDER BY timestamp DESC", (err, result) => {
-        if (err) return res.status(500).send(err);
-        res.json(result);
-    });
-});
-router.get('motion3',  (req, res) => {
-    con.query("SELECT * FROM motion WHERE microcontroller = 3 ORDER BY timestamp DESC", (err, result) => {
-        if (err) return res.status(500).send(err);
-        res.json(result);
-    });
-});
-router.get('/motion4',  (req, res) => {
-    con.query("SELECT * FROM motion WHERE microcontroller = 4 ORDER BY timestamp DESC", (err, result) => {
-        if (err) return res.status(500).send(err);
-        res.json(result);
-    });
-});
+async function getMotionData(microcontroller, res) {
+    try {
+        const motionCollection = db.collection('motion');
+        const data = await motionCollection
+            .find({ microcontroller })
+            .sort({ timestamp: -1 })
+            .toArray();
+
+        res.json(data);
+    } catch (err) {
+        res.status(500).send(err.message);
+    }
+}
+
+router.get('/motion1', (req, res) => getMotionData(1, res));
+router.get('/motion2', (req, res) => getMotionData(2, res));
+router.get('/motion3', (req, res) => getMotionData(3, res));
+router.get('/motion4', (req, res) => getMotionData(4, res));
+
 export { router as motionRouter };

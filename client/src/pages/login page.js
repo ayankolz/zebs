@@ -16,7 +16,7 @@ const Login = () => {
 
     const handleSubmit = (event) => {
         event.preventDefault();
-        axios.post('http://localhost:3005/auth/Login', values)
+        axios.post('https://server-as46.onrender.com/auth/Login', values)
             .then(result => {
                 if (result.data.loginStatus) {
                     // Save email to localStorage

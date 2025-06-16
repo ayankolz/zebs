@@ -19,7 +19,7 @@ const Account = () => {
 
     const handleLogout = async () => {
         try {
-            const result = await axios.post('http://localhost:3005/auth/logout');
+            const result = await axios.post('https://server-as46.onrender.com/auth/logout');
             if (result.data.success) {
                 localStorage.removeItem('userEmail'); // Optional: clear email
                 navigate('/login');
@@ -34,7 +34,7 @@ const Account = () => {
     useEffect(() => {
         const fetchUserData = async () => {
             try {
-                const response = await axios.get(`http://localhost:3005/auth/account/${userEmail}`);
+                const response = await axios.get(`https://server-as46.onrender.com/auth/account/${userEmail}`);
                 if (response.data.length > 0) {
                     const userData = response.data[0];
                     setUsers({
