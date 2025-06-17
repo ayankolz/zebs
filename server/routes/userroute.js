@@ -1,5 +1,5 @@
 import express from 'express';
-import { db } from './db.js';
+import { db } from '../db.js';
 import nodemailer from 'nodemailer';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
