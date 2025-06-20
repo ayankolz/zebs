@@ -35,8 +35,8 @@ const Account = () => {
         const fetchUserData = async () => {
             try {
                 const response = await axios.get(`https://server-as46.onrender.com/auth/account/${email}`);
-                if (response.data.length > 0) {
-                    const userData = response.data[0];
+                if (response.data && response.data.email) {
+                    const userData = response.data;
                     setUsers({
                         firstname: userData.firstname,
                         lastname: userData.lastname,
@@ -60,6 +60,7 @@ const Account = () => {
             navigate('/login');
         }
     }, [navigate, email]);
+
 
     return (
         <div className="container2">
