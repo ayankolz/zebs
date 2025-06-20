@@ -179,10 +179,10 @@ router.post('/change-password/:email', authenticateToken, async (req, res) => {
 });
 
 // GET ACCOUNT DETAILS
-router.get('/account/:email', async (req, res) => {
-    const { email } = req.params;
+router.get('/account/:userEmail', async (req, res) => {
+    const { userEmail } = req.params;
     try {
-        const user = await db.collection('users').findOne({ email }, { projection: { password: 0 } });
+        const user = await db.collection('users').findOne({ userEmail }, { projection: { password: 0 } });
         if (!user) {
             return res.status(404).json({ error: 'User not found' });
         }

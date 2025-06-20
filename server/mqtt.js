@@ -2,7 +2,6 @@ import mqtt from 'mqtt';
 import { db } from './db.js';
 import { config } from './config.js';
 
-// Connect to MQTT broker using values from your env file
 const client = mqtt.connect(config.mqttUri, {
     username: config.mqttUsername,
     password: config.mqttPassword,
@@ -48,18 +47,27 @@ client.on('error', (err) => {
 });
 
 client.on('message', async (topic, message) => {
-    const msgStr = message.toString();
+    const rawMsg = message.toString().trim();
     const timestamp = new Date();
 
-    console.log('📥 Raw MQTT Message:', msgStr);
+    console.log('📥 Raw MQTT Message:', rawMsg);
     console.log('🔍 Topic:', topic);
 
-    const microcontroller = parseInt(topic.charAt(14)); // extract microcontroller id
+    const microIdMatch = topic.match(/microcontroller(\d)/);
+    const microcontroller = microIdMatch ? parseInt(microIdMatch[1]) : null;
+
+    if (!microcontroller) {
+        console.warn('⚠️ Invalid microcontroller topic:', topic);
+        return;
+    }
 
     try {
+        // Strip trailing commas to fix malformed JSON
+        const cleanMsg = rawMsg.replace(/,\s*}/g, '}');
+
         if (topic.includes('/sensors')) {
             const sensorsCollection = db.collection('sensors');
-            const jsonData = JSON.parse(msgStr); // still expect JSON
+            const jsonData = JSON.parse(cleanMsg);
 
             await sensorsCollection.insertOne({
                 microcontroller,
@@ -70,12 +78,12 @@ client.on('message', async (topic, message) => {
                 moistureTwo: jsonData.moistureTwo
             });
 
-            console.log('✅ Sensors data saved to MongoDB');
+            console.log(`✅ Sensors data saved (MC${microcontroller})`);
         }
 
         else if (topic.includes('/irrigation')) {
             const irrigationCollection = db.collection('irrigation');
-            const jsonData = JSON.parse(msgStr); // still expect JSON
+            const jsonData = JSON.parse(cleanMsg);
 
             await irrigationCollection.insertOne({
                 microcontroller,
@@ -84,7 +92,7 @@ client.on('message', async (topic, message) => {
                 action_timestamp: jsonData.timestamp
             });
 
-            console.log('✅ Irrigation data saved to MongoDB');
+            console.log(`✅ Irrigation data saved (MC${microcontroller})`);
         }
 
         else if (topic.includes('/system')) {
@@ -92,21 +100,21 @@ client.on('message', async (topic, message) => {
 
             await systemCollection.insertOne({
                 microcontroller,
-                data: msgStr,  // store raw string directly
+                data: rawMsg,
                 timestamp
             });
 
-            console.log('✅ System data saved to MongoDB');
+            console.log(`✅ System data saved (MC${microcontroller})`);
         }
+
         else if (topic.includes('/motion')) {
             const motionCollection = db.collection('motion');
-
-            // Parse the boolean message
             let motionValue;
+
             try {
-                motionValue = JSON.parse(msgStr);  // convert "true" or "false" string to actual boolean
-            } catch (err) {
-                console.error('❌ Failed to parse motion boolean:', msgStr);
+                motionValue = JSON.parse(cleanMsg);
+            } catch {
+                console.error('❌ Invalid motion value:', rawMsg);
                 return;
             }
 
@@ -118,9 +126,8 @@ client.on('message', async (topic, message) => {
                 timestamp
             });
 
-            console.log('✅ Motion data saved to MongoDB');
+            console.log(`✅ Motion data saved (MC${microcontroller})`);
         }
-
 
         else {
             console.warn('⚠️ Unhandled topic:', topic);
