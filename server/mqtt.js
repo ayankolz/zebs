@@ -8,11 +8,7 @@ const client = mqtt.connect(config.mqttUri, {
     clientId: config.mqttClientId,
     rejectUnauthorized: false
 });
-console.log('🔍 MQTT config:', {
-    mqttUri: config.mqttUri,
-    mqttUsername: config.mqttUsername,
-    mqttClientId: config.mqttClientId
-});
+
 
 
 client.on('connect', () => {

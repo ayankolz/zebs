@@ -5,6 +5,7 @@ import { irrigationRouter } from "./routes/irrigationroute.js";
 import { sensorsRouter } from "./routes/sensorsroute.js";
 import { systemRouter } from "./routes/systemroute.js";
 import { motionRouter } from "./routes/motionroute.js";
+import { config } from "./config.js";
 import dotenv from 'dotenv';
 dotenv.config();
 
@@ -28,7 +29,11 @@ app.use('/auth', motionRouter)
 
 // Use PORT from environment, fallback to 3005 locally
 const PORT = process.env.PORT || 3005;
-
+console.log('🔍 MQTT config:', {
+    mqttUri: config.mqttUri,
+    mqttUsername: config.mqttUsername,
+    mqttClientId: config.mqttClientId
+});
 app.listen(PORT, () => {
   console.log(`${PORT} Server is running`);
 });
