@@ -1,7 +1,6 @@
 import { MongoClient } from 'mongodb';
 import { config } from './config.js';
 
-console.log("Mongo URI:", config.mongoUri);  // You will now see the actual value
 
 const client = new MongoClient(config.mongoUri); 
 

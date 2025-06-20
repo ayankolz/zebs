@@ -5,6 +5,8 @@ import { irrigationRouter } from "./routes/irrigationroute.js";
 import { sensorsRouter } from "./routes/sensorsroute.js";
 import { systemRouter } from "./routes/systemroute.js";
 import { motionRouter } from "./routes/motionroute.js";
+import dotenv from 'dotenv';
+dotenv.config();
 
 
 
