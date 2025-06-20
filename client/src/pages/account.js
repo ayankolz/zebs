@@ -15,7 +15,7 @@ const Account = () => {
     });
 
     const navigate = useNavigate();
-    const userEmail = localStorage.getItem('userEmail'); // Email from localStorage
+    const email = localStorage.getItem('userEmail'); // Email from localStorage
 
     const handleLogout = async () => {
         try {
@@ -34,7 +34,7 @@ const Account = () => {
     useEffect(() => {
         const fetchUserData = async () => {
             try {
-                const response = await axios.get(`https://server-as46.onrender.com/auth/account/${userEmail}`);
+                const response = await axios.get(`https://server-as46.onrender.com/auth/account/${email}`);
                 if (response.data.length > 0) {
                     const userData = response.data[0];
                     setUsers({
@@ -53,13 +53,13 @@ const Account = () => {
             }
         };
 
-        if (userEmail) {
+        if (email) {
             fetchUserData();
         } else {
             console.error("No user email found in localStorage");
             navigate('/login');
         }
-    }, [navigate, userEmail]);
+    }, [navigate, email]);
 
     return (
         <div className="container2">
